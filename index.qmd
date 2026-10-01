@@ -1,0 +1,84 @@
+---
+title: "9041 Assignment 2"
+author: Jheanelle Walters
+date: today
+format: 
+    html:
+      toc: true
+      code-fold: true
+      code-summary: "Show code"
+      df-print: paged
+execute:
+    echo: false
+    warning: false
+---
+```{r, setup}
+#| output: FALSE
+library(tidyverse)
+library(psych)
+library(readxl)
+library(gt)
+library(janitor)
+```
+```{r, load-data}
+#| output: FALSE
+anxiety_data <- read_excel("Attachment_Anxiety_Data.xlsx")
+```
+```{r, inspect-data}
+glimpse(anxiety_data)
+```
+```{r, clean-data}
+#| output: FALSE
+anxiety_data <- anxiety_data |>
+  mutate(
+    Gender = case_when(
+      Gender == "1" ~ "Male",
+      Gender == "2" ~ "Female"
+    ),
+    Ethnicity = case_when(
+      Ethnicity == "1" ~ "White/Caucasian",
+      Ethnicity == "2" ~ "Asian/Asian British",
+      Ethnicity == "5" ~ "Other ethnic group",
+      Ethnicity == "6" ~ "Prefer not to say"
+    )
+  ) |>
+  mutate(across(SA_1:SEst_10, as.integer))
+```
+```{r, answer-keys}
+#| output: FALSE
+SA_key <- list(SIAS = c("SA_1", "SA_2", "SA_3", "SA_4", "-SA_5", "SA_6", "SA_7", "SA_8",
+                         "-SA_9", "SA_10", "-SA_11", "SA_12", "SA_13", "SA_14", "SA_15",
+                         "SA_16", "SA_17", "SA_18", "SA_19", "SA_20"))
+
+AA_key <- list(ECR_Anxiety = c("AA_1", "AA_2", "AA_3", "AA_4", "AA_5", "AA_6", "AA_7", "AA_8", "AA_9"))
+
+SEst_key <- list(RSES = c("SEst_1", "-SEst_2", "SEst_3", "SEst_4", "-SEst_5", "-SEst_6",
+                           "SEst_7", "-SEst_8", "-SEst_9", "SEst_10"))
+```
+```{r, score-items}
+#| output: FALSE
+scores_SA <- scoreItems(SA_key, anxiety_data, min = 0, max = 4)
+scores_AA <- scoreItems(AA_key, anxiety_data, min = 1, max = 7)
+scores_SEst <- scoreItems(SEst_key, anxiety_data, min = 1, max = 4)
+scores_SA.df <- as.data.frame(scores_SA$scores)
+scores_AA.df <- as.data.frame(scores_AA$scores)
+scores_SEst.df <- as.data.frame(scores_SEst$scores)
+```
+```{r, combine-scores}
+#| output: FALSE
+allscores.df <- cbind(scores_SA.df, scores_AA.df, scores_SEst.df)
+final.dataset <- cbind(anxiety_data, allscores.df)
+```
+```{r, reduce-data}
+#| output: FALSE
+final.dataset <- final.dataset |>
+  select(URN, Gender, `Age group`, Relationship, Ethnicity, SIAS, ECR_Anxiety, RSES)
+```
+```{r, demographic-table}
+demographic.table <- final.dataset |>
+  tabyl(Gender, Ethnicity)
+
+demographic.table <- demographic.table |>
+  gt() |>
+  tab_header(title = "Demographic Summary: Gender by Ethnicity")
+```
