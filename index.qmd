@@ -82,3 +82,94 @@ demographic.table <- demographic.table |>
   gt() |>
   tab_header(title = "Demographic Summary: Gender by Ethnicity")
 ```
+```{r, score-table}
+#| output: FALSE
+summary <- describe(final.dataset |> select(SIAS, ECR_Anxiety, RSES))
+
+sample_size <- nrow(final.dataset)
+
+alphas <- round(c(
+  scores_SA$alpha,
+  scores_AA$alpha,
+  scores_SEst$alpha
+), 2)
+
+summary <- summary |>
+  mutate(Scales = c("SIAS", "ECR_Anxiety", "RSES")) |>
+  cbind(Alpha = alphas) |>
+  select(Scales, n, mean, median, sd, range, Alpha)
+
+score.table <- summary |>
+  gt() |>
+  tab_header(title = "Scale Score Summary", subtitle = paste("Sample Size:", sample_size))
+```
+```{r, filter-data}
+#| output: FALSE
+filtered.dataset <- final.dataset |>
+  filter(Gender == "Female")
+```
+```{r, filtered-score-table}
+#| output: FALSE
+summary_filtered <- describe(filtered.dataset |> select(SIAS, ECR_Anxiety, RSES))
+
+sample_size_filtered <- nrow(filtered.dataset)
+
+summary_filtered <- summary_filtered |>
+  mutate(Scales = c("SIAS", "ECR_Anxiety", "RSES")) |>
+  cbind(Alpha = alphas) |>
+  select(Scales, n, mean, median, sd, range, Alpha)
+
+score.table.filtered <- summary_filtered |>
+  gt() |>
+  tab_header(title = "Scale Score Summary (Filtered: Female)", subtitle = paste("Sample Size:", sample_size_filtered))
+```
+## Introduction
+This report examines the relationships between attachment-related anxiety, social anxiety, and self-esteem using survey data collected from adult participants. Three validated psychological scales were used to measure these constructs, and scores were compared across the full sample as well as a filtered subsample.
+
+## Methods
+This section describes the participants, measures, and data analysis strategy used in this study.
+
+### Participants
+A total of `{r} sample_size` participants completed the survey.
+
+```{r, demo-table-display}
+demographic.table
+```
+### Measures
+
+Participants completed three self-report questionnaires measuring attachment-related anxiety, social anxiety, and self-esteem.
+
+**Social Interaction Anxiety Scale (SIAS).** This 20-item scale measures anxiety experienced during social interactions. In this sample, the scale showed good internal consistency (α = `{r} scores_SA$alpha`).
+
+**Experiences in Close Relationships Scale (shortened Attachment-Related Anxiety subscale).** This 9-item subscale measures attachment-related anxiety in close relationships. In this sample, internal consistency was excellent (α = `{r} scores_AA$alpha`).
+
+**Rosenberg Self-Esteem Scale (RSES).** This 10-item scale measures global self-esteem. In this sample, the scale showed good internal consistency (α = `{r} scores_SEst$alpha`).
+
+
+### Data Analysis Strategy
+
+Prior to scoring, raw survey responses were cleaned and converted to integer values. Scale scores were then calculated using the `scoreItems()` function from the `psych` package, which computes average item scores and Cronbach's alpha for each scale.
+
+Reverse-keying was applied to items worded in the opposite direction of the construct being measured, so that higher scores consistently reflect higher levels of the trait across all items. For the Social Interaction Anxiety Scale, items 5, 9, and 11 were reverse-keyed. For the Rosenberg Self-Esteem Scale, items 2, 5, 6, 8, and 9 were reverse-keyed, consistent with the scale's standard scoring procedure in which several items are worded positively (e.g., "I feel I have a number of good qualities") rather than negatively. No items on the Experiences in Close Relationships Anxiety subscale required reverse-keying.
+
+## Results
+
+### Unfiltered Sample
+
+The table below summarizes scale scores across the full sample (N = `{r} sample_size`).
+
+```{r, score-table-display}
+score.table
+```
+
+On average, participants scored `{r} round(summary$mean[1], 2)` on the SIAS, `{r} round(summary$mean[2], 2)` on the ECR Anxiety subscale, and `{r} round(summary$mean[3], 2)` on the RSES.
+
+### Filtered Sample (Female Participants)
+
+The table below summarizes scale scores among female participants only (N = `{r} sample_size_filtered`).
+
+```{r, filtered-score-table-display}
+score.table.filtered
+```
+
+Among female participants, average scores were `{r} round(summary_filtered$mean[1], 2)` on the SIAS, `{r} round(summary_filtered$mean[2], 2)` on the ECR Anxiety subscale, and `{r} round(summary_filtered$mean[3], 2)` on the RSES.
